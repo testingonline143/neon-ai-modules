@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect } from "wouter";
 
 function AppRoutes() {
   const { currentUser, loading } = useAuth();
@@ -23,9 +23,15 @@ function AppRoutes() {
 
   return (
     <Switch>
-      <Route path="/" component={Index} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/">
+        {currentUser ? <Redirect to="/dashboard" /> : <Index />}
+      </Route>
+      <Route path="/dashboard">
+        {currentUser ? <Dashboard /> : <Redirect to="/" />}
+      </Route>
+      <Route path="/admin">
+        {currentUser ? <AdminDashboard /> : <Redirect to="/" />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
