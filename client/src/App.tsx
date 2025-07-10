@@ -6,10 +6,13 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { queryClient } from "@/lib/queryClient";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import NotFound from "./pages/NotFound";
+import { Switch, Route } from "wouter";
 
 function AppRoutes() {
   const { currentUser, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -17,8 +20,15 @@ function AppRoutes() {
       </div>
     );
   }
-  
-  return currentUser ? <Dashboard /> : <Index />;
+
+  return (
+    <Switch>
+      <Route path="/" component={Index} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 const App = () => (

@@ -111,6 +111,14 @@ export default function Dashboard() {
                 <Badge variant="outline" className="border-gray-600 text-gray-300">
                   Reviews
                 </Badge>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = "/admin"}
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                >
+                  Admin
+                </Button>
                 <span className="text-sm text-gray-300">
                   Welcome, {currentUser?.displayName || currentUser?.email}
                 </span>
