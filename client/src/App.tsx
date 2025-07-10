@@ -7,6 +7,7 @@ import { queryClient } from "@/lib/queryClient";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
 import { Switch, Route, Redirect } from "wouter";
 
@@ -28,6 +29,9 @@ function AppRoutes() {
       </Route>
       <Route path="/dashboard">
         {currentUser ? <Dashboard /> : <Redirect to="/" />}
+      </Route>
+      <Route path="/admin-access">
+        <AdminAccess />
       </Route>
       <Route path="/admin">
         {currentUser ? <AdminDashboard /> : <Redirect to="/" />}
