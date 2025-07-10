@@ -236,6 +236,27 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteFile = async (filename: string) => {
+    try {
+      const response = await fetch(`/api/admin/files/${filename}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete file');
+      
+      // Refresh the files list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/files'] });
+      
+      toast({ title: "File deleted successfully" });
+    } catch (error) {
+      toast({ 
+        title: "Delete failed", 
+        description: "Failed to delete the file",
+        variant: "destructive" 
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Navigation */}
@@ -746,19 +767,29 @@ export default function AdminDashboard() {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(file.url)}
-                          className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
-                        >
-                          Copy URL
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(file.url)}
+                            className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
+                          >
+                            Copy URL
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteFile(file.filename)}
+                            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                     {/* Show newly uploaded files */}
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                      <div key={`new-${index}`} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                         <div className="flex items-center space-x-3">
                           {file.type === 'video' ? (
                             <Video className="w-6 h-6 text-blue-400" />
@@ -772,14 +803,24 @@ export default function AdminDashboard() {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(file.url)}
-                          className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
-                        >
-                          Copy URL
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(file.url)}
+                            className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
+                          >
+                            Copy URL
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteFile(file.filename)}
+                            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>

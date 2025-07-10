@@ -307,6 +307,27 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Delete uploaded file (admin)
+  app.delete("/api/admin/files/:filename", async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join('./uploads', filename);
+      
+      // Check if file exists
+      try {
+        await fs.access(filePath);
+      } catch {
+        return res.status(404).json({ message: "File not found" });
+      }
+      
+      // Delete the file
+      await fs.unlink(filePath);
+      res.json({ message: "File deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
 
