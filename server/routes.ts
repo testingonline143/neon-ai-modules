@@ -281,6 +281,32 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get uploaded files list (admin)
+  app.get("/api/admin/files", async (req, res) => {
+    try {
+      const uploadDir = './uploads';
+      const files = await fs.readdir(uploadDir);
+      const fileList = await Promise.all(
+        files.map(async (filename) => {
+          const filePath = path.join(uploadDir, filename);
+          const stats = await fs.stat(filePath);
+          const ext = path.extname(filename).toLowerCase();
+          return {
+            filename,
+            originalName: filename, // For existing files, use filename as original name
+            url: `/uploads/${filename}`,
+            size: stats.size,
+            type: ext === '.pdf' ? 'pdf' : 'video',
+            createdAt: stats.mtime
+          };
+        })
+      );
+      res.json(fileList);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch files" });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
 

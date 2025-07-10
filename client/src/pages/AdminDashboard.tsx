@@ -67,6 +67,7 @@ export default function AdminDashboard() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false);
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{url: string, filename: string, type: string, size: number}>>([]);
 
   // Fetch users
   const { data: users = [] } = useQuery<User[]>({
@@ -94,6 +95,16 @@ export default function AdminDashboard() {
     queryFn: async () => {
       const response = await fetch('/api/admin/lessons');
       if (!response.ok) throw new Error('Failed to fetch lessons');
+      return response.json();
+    }
+  });
+
+  // Fetch uploaded files
+  const { data: existingFiles = [] } = useQuery<Array<{url: string, filename: string, type: string, size: number}>>({
+    queryKey: ['/api/admin/files'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/files');
+      if (!response.ok) throw new Error('Failed to fetch files');
       return response.json();
     }
   });
@@ -187,11 +198,41 @@ export default function AdminDashboard() {
       });
       if (!response.ok) throw new Error('Upload failed');
       const data = await response.json();
-      toast({ title: `${type} uploaded successfully`, description: data.url });
+      
+      // Add to uploaded files list
+      const fileInfo = {
+        url: data.url,
+        filename: data.originalName || data.filename,
+        type: file.type.startsWith('video/') ? 'video' : 'pdf',
+        size: data.size
+      };
+      setUploadedFiles(prev => [...prev, fileInfo]);
+      
+      // Refresh the existing files list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/files'] });
+      
+      toast({ 
+        title: `${type} uploaded successfully`, 
+        description: `${data.originalName} (${(data.size / (1024 * 1024)).toFixed(2)} MB)` 
+      });
       return data.url;
     } catch (error) {
-      toast({ title: "Upload failed", variant: "destructive" });
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast({ 
+        title: "Upload failed", 
+        description: errorMessage.includes("File too large") ? "File must be under 100MB" : errorMessage,
+        variant: "destructive" 
+      });
       throw error;
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({ title: "URL copied to clipboard" });
+    } catch (error) {
+      toast({ title: "Failed to copy URL", variant: "destructive" });
     }
   };
 
@@ -624,14 +665,17 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-400 mb-4">
                         Drag and drop your video files here, or click to browse
                       </p>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Max file size: 100MB
+                      </p>
                       <input
                         type="file"
                         id="video-upload"
                         accept="video/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, 'video');
+                          if (file) await handleFileUpload(file, 'video');
                         }}
                       />
                       <Button 
@@ -651,14 +695,17 @@ export default function AdminDashboard() {
                       <p className="text-sm text-gray-400 mb-4">
                         Drag and drop your PDF files here, or click to browse
                       </p>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Max file size: 100MB
+                      </p>
                       <input
                         type="file"
                         id="pdf-upload"
                         accept="application/pdf"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(file, 'pdf');
+                          if (file) await handleFileUpload(file, 'pdf');
                         }}
                       />
                       <Button 
@@ -673,6 +720,72 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Uploaded Files Section */}
+            {(existingFiles.length > 0 || uploadedFiles.length > 0) && (
+              <Card className="bg-gray-900 border-gray-800">
+                <CardHeader>
+                  <CardTitle>Uploaded Files</CardTitle>
+                  <CardDescription>Click on any URL to copy it to clipboard</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {/* Show existing files */}
+                    {existingFiles.map((file, index) => (
+                      <div key={`existing-${index}`} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {file.type === 'video' ? (
+                            <Video className="w-6 h-6 text-blue-400" />
+                          ) : (
+                            <FileText className="w-6 h-6 text-red-400" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-white">{file.filename}</p>
+                            <p className="text-xs text-gray-400">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(file.url)}
+                          className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
+                        >
+                          Copy URL
+                        </Button>
+                      </div>
+                    ))}
+                    {/* Show newly uploaded files */}
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {file.type === 'video' ? (
+                            <Video className="w-6 h-6 text-blue-400" />
+                          ) : (
+                            <FileText className="w-6 h-6 text-red-400" />
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-white">{file.filename}</p>
+                            <p className="text-xs text-gray-400">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(file.url)}
+                          className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
+                        >
+                          Copy URL
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>
