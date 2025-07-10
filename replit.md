@@ -27,7 +27,10 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage Solutions
 - **Primary Database**: PostgreSQL with Drizzle ORM for schema management and type-safe database operations
 - **Authentication**: Firebase Auth for user authentication and session management
-- **In-Memory Storage**: Fallback MemStorage class for development/testing
+- **Database Tables**: 
+  - `users` table with id, username, password, email, name, and timestamps
+  - `enrollments` table to track user course enrollment and progress
+- **API Endpoints**: RESTful APIs for user management and enrollment tracking
 
 ### Authentication and Authorization
 - **Provider**: Firebase Authentication
