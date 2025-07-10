@@ -30,7 +30,9 @@ Preferred communication style: Simple, everyday language.
 - **Database Tables**: 
   - `users` table with id, username, password, email, name, and timestamps
   - `enrollments` table to track user course enrollment and progress
-- **API Endpoints**: RESTful APIs for user management and enrollment tracking
+  - `modules` table to store course modules with lessons count and metadata
+  - `lessons` table to store individual lesson content with video/PDF URLs
+- **API Endpoints**: RESTful APIs for user management, enrollment tracking, and admin content management
 
 ### Authentication and Authorization
 - **Provider**: Firebase Authentication
@@ -42,8 +44,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Layer
 - **ORM**: Drizzle ORM with PostgreSQL dialect
-- **Schema**: Located in `shared/schema.ts` with user entity defined
-- **Migrations**: Auto-generated in `./migrations` directory
+- **Schema**: Located in `shared/schema.ts` with users, enrollments, modules, and lessons entities
+- **Migrations**: Auto-generated via `npm run db:push` command
 - **Connection**: Uses Neon Database serverless driver
 
 ### UI System
@@ -53,9 +55,11 @@ Preferred communication style: Simple, everyday language.
 - **Responsive**: Mobile-first design with responsive breakpoints
 
 ### Course Management
-- **Course Modules**: Structured learning content with video lessons
+- **Course Modules**: Structured learning content with video lessons stored in database
 - **Progress Tracking**: Built-in progress indicators and completion states
 - **User Experience**: Card-based layout with modern glassmorphism effects
+- **Admin Dashboard**: Full content management system for modules, lessons, and user tracking
+- **File Upload**: Support for video and PDF file uploads with multer integration
 
 ## Data Flow
 
@@ -102,3 +106,13 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Centralized error handling middleware in Express
 
 The application is designed as a monorepo with shared TypeScript definitions, making it easy to maintain type safety across the full stack while providing a modern, performant learning platform for AI-related content.
+
+## Recent Changes (July 2025)
+
+### Admin System Implementation
+- Added complete admin dashboard with content management capabilities
+- Implemented modules and lessons database tables with full CRUD operations
+- Added file upload functionality for video and PDF content
+- Created admin API endpoints for user management and content creation
+- Removed admin access button from student dashboard for security
+- Added proper admin routing with authentication checks
