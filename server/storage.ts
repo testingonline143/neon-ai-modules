@@ -49,8 +49,9 @@ interface Lesson {
   moduleId: number;
   title: string;
   description: string;
-  videoUrl?: string;
-  pdfUrl?: string;
+  youtubeUrl?: string;
+  youtubeVideoId?: string;
+  videoThumbnail?: string;
   order: number;
   duration: string;
   isPublished: boolean;
@@ -62,8 +63,9 @@ interface InsertLesson {
   moduleId: number;
   title: string;
   description: string;
-  videoUrl?: string;
-  pdfUrl?: string;
+  youtubeUrl?: string;
+  youtubeVideoId?: string;
+  videoThumbnail?: string;
   order: number;
   duration: string;
   isPublished: boolean;
@@ -188,15 +190,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllLessons(): Promise<Lesson[]> {
-    // For now, return dummy data
+    // For now, return sample YouTube lesson data
     return [
       {
         id: 1,
         moduleId: 1,
         title: "What is AI?",
         description: "Introduction to artificial intelligence concepts",
-        videoUrl: "https://example.com/video1.mp4",
-        pdfUrl: "https://example.com/slides1.pdf",
+        youtubeUrl: "https://www.youtube.com/watch?v=JMUxmLyrhSk",
+        youtubeVideoId: "JMUxmLyrhSk",
+        videoThumbnail: "https://img.youtube.com/vi/JMUxmLyrhSk/maxresdefault.jpg",
         order: 1,
         duration: "15 minutes",
         isPublished: true,
@@ -208,8 +211,9 @@ export class DatabaseStorage implements IStorage {
         moduleId: 1,
         title: "History of AI",
         description: "Evolution of artificial intelligence over time",
-        videoUrl: "https://example.com/video2.mp4",
-        pdfUrl: "https://example.com/slides2.pdf",
+        youtubeUrl: "https://www.youtube.com/watch?v=kWmX3pd1f10",
+        youtubeVideoId: "kWmX3pd1f10",
+        videoThumbnail: "https://img.youtube.com/vi/kWmX3pd1f10/maxresdefault.jpg",
         order: 2,
         duration: "20 minutes",
         isPublished: true,
@@ -236,8 +240,9 @@ export class DatabaseStorage implements IStorage {
       moduleId: lesson.moduleId || 1,
       title: lesson.title || "Updated Lesson",
       description: lesson.description || "Updated description",
-      videoUrl: lesson.videoUrl,
-      pdfUrl: lesson.pdfUrl,
+      youtubeUrl: lesson.youtubeUrl,
+      youtubeVideoId: lesson.youtubeVideoId,
+      videoThumbnail: lesson.videoThumbnail,
       order: lesson.order || 1,
       duration: lesson.duration || "10 minutes",
       isPublished: lesson.isPublished || false,

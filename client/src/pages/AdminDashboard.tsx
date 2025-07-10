@@ -16,11 +16,9 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  Upload, 
   Users, 
   BookOpen, 
   Video, 
-  FileText, 
   BarChart3,
   LogOut,
   Save
@@ -50,8 +48,9 @@ interface Lesson {
   moduleId: number;
   title: string;
   description: string;
-  videoUrl?: string;
-  pdfUrl?: string;
+  youtubeUrl?: string;
+  youtubeVideoId?: string;
+  videoThumbnail?: string;
   order: number;
   duration: string;
   isPublished: boolean;
@@ -67,8 +66,6 @@ export default function AdminDashboard() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false);
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{url: string, filename: string, type: string, size: number}>>([]);
-
   // Fetch users
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
@@ -99,15 +96,7 @@ export default function AdminDashboard() {
     }
   });
 
-  // Fetch uploaded files
-  const { data: existingFiles = [] } = useQuery<Array<{url: string, filename: string, type: string, size: number}>>({
-    queryKey: ['/api/admin/files'],
-    queryFn: async () => {
-      const response = await fetch('/api/admin/files');
-      if (!response.ok) throw new Error('Failed to fetch files');
-      return response.json();
-    }
-  });
+
 
   // Create/Update module mutation
   const moduleUpsertMutation = useMutation({
@@ -169,93 +158,59 @@ export default function AdminDashboard() {
     moduleUpsertMutation.mutate(moduleData);
   };
 
-  const handleLessonSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLessonSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const lessonData = {
-      id: selectedLesson?.id,
-      moduleId: parseInt(formData.get('moduleId') as string),
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      videoUrl: formData.get('videoUrl') as string,
-      pdfUrl: formData.get('pdfUrl') as string,
-      duration: formData.get('duration') as string,
-      order: parseInt(formData.get('order') as string),
-      isPublished: formData.get('isPublished') === 'on'
-    };
-    lessonUpsertMutation.mutate(lessonData);
-  };
-
-  const handleFileUpload = async (file: File, type: 'video' | 'pdf') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
+    const youtubeUrl = formData.get('youtubeUrl') as string;
     
     try {
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: formData
-      });
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
+      let videoData = null;
       
-      // Add to uploaded files list
-      const fileInfo = {
-        url: data.url,
-        filename: data.originalName || data.filename,
-        type: file.type.startsWith('video/') ? 'video' : 'pdf',
-        size: data.size
+      // Validate YouTube URL if provided
+      if (youtubeUrl) {
+        const response = await fetch('/api/admin/validate-youtube', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: youtubeUrl })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          toast({ 
+            title: "Invalid YouTube URL", 
+            description: error.message,
+            variant: "destructive" 
+          });
+          return;
+        }
+        
+        videoData = await response.json();
+      }
+      
+      const lessonData = {
+        id: selectedLesson?.id,
+        moduleId: parseInt(formData.get('moduleId') as string),
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        youtubeUrl: youtubeUrl || undefined,
+        youtubeVideoId: videoData?.videoId || undefined,
+        videoThumbnail: videoData?.thumbnailUrl || undefined,
+        duration: formData.get('duration') as string,
+        order: parseInt(formData.get('order') as string),
+        isPublished: formData.get('isPublished') === 'on'
       };
-      setUploadedFiles(prev => [...prev, fileInfo]);
       
-      // Refresh the existing files list
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/files'] });
-      
-      toast({ 
-        title: `${type} uploaded successfully`, 
-        description: `${data.originalName} (${(data.size / (1024 * 1024)).toFixed(2)} MB)` 
-      });
-      return data.url;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Upload failed";
-      toast({ 
-        title: "Upload failed", 
-        description: errorMessage.includes("File too large") ? "File must be under 100MB" : errorMessage,
-        variant: "destructive" 
-      });
-      throw error;
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast({ title: "URL copied to clipboard" });
-    } catch (error) {
-      toast({ title: "Failed to copy URL", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteFile = async (filename: string) => {
-    try {
-      const response = await fetch(`/api/admin/files/${filename}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete file');
-      
-      // Refresh the files list
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/files'] });
-      
-      toast({ title: "File deleted successfully" });
+      lessonUpsertMutation.mutate(lessonData);
     } catch (error) {
       toast({ 
-        title: "Delete failed", 
-        description: "Failed to delete the file",
+        title: "Validation failed", 
+        description: "Please check your YouTube URL",
         variant: "destructive" 
       });
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -298,7 +253,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="modules">Modules</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
+            <TabsTrigger value="content">YouTube Videos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -569,25 +524,18 @@ export default function AdminDashboard() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="videoUrl">Video URL</Label>
-                        <Input
-                          id="videoUrl"
-                          name="videoUrl"
-                          type="url"
-                          defaultValue={selectedLesson?.videoUrl}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="pdfUrl">PDF URL</Label>
-                        <Input
-                          id="pdfUrl"
-                          name="pdfUrl"
-                          type="url"
-                          defaultValue={selectedLesson?.pdfUrl}
-                        />
-                      </div>
+                    <div>
+                      <Label htmlFor="youtubeUrl">YouTube URL</Label>
+                      <Input
+                        id="youtubeUrl"
+                        name="youtubeUrl"
+                        type="url"
+                        placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                        defaultValue={selectedLesson?.youtubeUrl}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter any valid YouTube URL. The system will automatically extract the video ID and generate thumbnails.
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -674,159 +622,162 @@ export default function AdminDashboard() {
           <TabsContent value="content" className="space-y-6">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle>File Upload</CardTitle>
-                <CardDescription>Upload videos and PDFs for your lessons</CardDescription>
+                <CardTitle>YouTube Video Management</CardTitle>
+                <CardDescription>Manage YouTube videos for your course lessons</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <Label htmlFor="video-upload">Video Upload</Label>
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center">
-                      <Video className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-sm text-gray-400 mb-4">
-                        Drag and drop your video files here, or click to browse
-                      </p>
-                      <p className="text-xs text-gray-500 mb-4">
-                        Max file size: 100MB
-                      </p>
-                      <input
-                        type="file"
-                        id="video-upload"
-                        accept="video/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) await handleFileUpload(file, 'video');
-                        }}
-                      />
-                      <Button 
-                        variant="outline" 
-                        onClick={() => document.getElementById('video-upload')?.click()}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Video
-                      </Button>
-                    </div>
-                  </div>
+              <CardContent className="space-y-6">
+                {/* YouTube URL Testing Tool */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">YouTube URL Validator</h3>
+                  <p className="text-sm text-gray-400">Test YouTube URLs to ensure they work correctly with the platform</p>
                   
-                  <div className="space-y-4">
-                    <Label htmlFor="pdf-upload">PDF Upload</Label>
-                    <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center">
-                      <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-sm text-gray-400 mb-4">
-                        Drag and drop your PDF files here, or click to browse
-                      </p>
-                      <p className="text-xs text-gray-500 mb-4">
-                        Max file size: 100MB
-                      </p>
-                      <input
-                        type="file"
-                        id="pdf-upload"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) await handleFileUpload(file, 'pdf');
-                        }}
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Input
+                        id="test-youtube-url"
+                        placeholder="Paste YouTube URL here to validate..."
+                        className="bg-gray-800 border-gray-700"
                       />
-                      <Button 
-                        variant="outline" 
-                        onClick={() => document.getElementById('pdf-upload')?.click()}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload PDF
-                      </Button>
                     </div>
+                    <Button 
+                      onClick={async () => {
+                        const input = document.getElementById('test-youtube-url') as HTMLInputElement;
+                        const url = input?.value;
+                        if (!url) {
+                          toast({ title: "Please enter a YouTube URL", variant: "destructive" });
+                          return;
+                        }
+                        
+                        try {
+                          const response = await fetch('/api/admin/validate-youtube', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url })
+                          });
+                          
+                          if (response.ok) {
+                            const data = await response.json();
+                            toast({ 
+                              title: "Valid YouTube URL!", 
+                              description: `Video ID: ${data.videoId}`
+                            });
+                          } else {
+                            const error = await response.json();
+                            toast({ 
+                              title: "Invalid YouTube URL", 
+                              description: error.message,
+                              variant: "destructive" 
+                            });
+                          }
+                        } catch (error) {
+                          toast({ 
+                            title: "Validation failed", 
+                            description: "Please check your URL format",
+                            variant: "destructive" 
+                          });
+                        }
+                      }}
+                      className="bg-[#00FFD1] hover:bg-[#00FFD1]/90 text-black"
+                    >
+                      Validate URL
+                    </Button>
                   </div>
                 </div>
+
+                {/* YouTube Lessons Overview */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">Current YouTube Lessons</h3>
+                  <div className="grid gap-4">
+                    {lessons.filter(lesson => lesson.youtubeUrl).map((lesson) => (
+                      <div key={lesson.id} className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg">
+                        {/* Video Thumbnail */}
+                        {lesson.videoThumbnail && (
+                          <img 
+                            src={lesson.videoThumbnail} 
+                            alt={lesson.title}
+                            className="w-24 h-18 object-cover rounded"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        )}
+                        
+                        {/* Lesson Info */}
+                        <div className="flex-1">
+                          <h4 className="font-medium text-white">{lesson.title}</h4>
+                          <p className="text-sm text-gray-400">{lesson.description}</p>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                            <span>Module: {modules.find(m => m.id === lesson.moduleId)?.title || 'N/A'}</span>
+                            <span>Duration: {lesson.duration}</span>
+                            <span>Video ID: {lesson.youtubeVideoId}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          {lesson.youtubeUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(lesson.youtubeUrl, '_blank')}
+                              className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
+                            >
+                              View on YouTube
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedLesson(lesson);
+                              setIsLessonDialogOpen(true);
+                            }}
+                            className="text-gray-300 border-gray-600 hover:bg-gray-700"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {lessons.filter(lesson => lesson.youtubeUrl).length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No YouTube videos have been added yet.</p>
+                        <p className="text-sm">Add YouTube URLs to your lessons to see them here.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* YouTube Guidelines */}
+                <Card className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <CardTitle className="text-base">YouTube Integration Guidelines</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm text-gray-300">
+                    <div>
+                      <h4 className="font-medium text-white mb-2">Supported URL Formats:</h4>
+                      <ul className="space-y-1 text-xs text-gray-400">
+                        <li>• https://www.youtube.com/watch?v=VIDEO_ID</li>
+                        <li>• https://youtu.be/VIDEO_ID</li>
+                        <li>• https://www.youtube.com/embed/VIDEO_ID</li>
+                        <li>• https://www.youtube.com/v/VIDEO_ID</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-white mb-2">Best Practices:</h4>
+                      <ul className="space-y-1 text-xs text-gray-400">
+                        <li>• Use unlisted videos for course content</li>
+                        <li>• Ensure videos are accessible to your target audience</li>
+                        <li>• Test URLs before publishing lessons</li>
+                        <li>• Keep video thumbnails appropriate for your course theme</li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
-
-            {/* Uploaded Files Section */}
-            {(existingFiles.length > 0 || uploadedFiles.length > 0) && (
-              <Card className="bg-gray-900 border-gray-800">
-                <CardHeader>
-                  <CardTitle>Uploaded Files</CardTitle>
-                  <CardDescription>Click on any URL to copy it to clipboard</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Show existing files */}
-                    {existingFiles.map((file, index) => (
-                      <div key={`existing-${index}`} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          {file.type === 'video' ? (
-                            <Video className="w-6 h-6 text-blue-400" />
-                          ) : (
-                            <FileText className="w-6 h-6 text-red-400" />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium text-white">{file.filename}</p>
-                            <p className="text-xs text-gray-400">
-                              {(file.size / (1024 * 1024)).toFixed(2)} MB
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(file.url)}
-                            className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
-                          >
-                            Copy URL
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteFile(file.filename)}
-                            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    {/* Show newly uploaded files */}
-                    {uploadedFiles.map((file, index) => (
-                      <div key={`new-${index}`} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          {file.type === 'video' ? (
-                            <Video className="w-6 h-6 text-blue-400" />
-                          ) : (
-                            <FileText className="w-6 h-6 text-red-400" />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium text-white">{file.filename}</p>
-                            <p className="text-xs text-gray-400">
-                              {(file.size / (1024 * 1024)).toFixed(2)} MB
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(file.url)}
-                            className="text-[#00FFD1] border-[#00FFD1] hover:bg-[#00FFD1] hover:text-black"
-                          >
-                            Copy URL
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteFile(file.filename)}
-                            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
         </Tabs>
       </div>

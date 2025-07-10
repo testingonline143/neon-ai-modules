@@ -261,70 +261,32 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // File upload endpoint (admin)
-  app.post("/api/admin/upload", upload.single('file'), async (req, res) => {
+  // Validate YouTube URL endpoint (admin)
+  app.post("/api/admin/validate-youtube", async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ message: "YouTube URL is required" });
       }
 
-      const fileUrl = `/uploads/${req.file.filename}`;
-      res.json({ 
-        message: "File uploaded successfully", 
-        url: fileUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
+      // Import the YouTube utility functions
+      const { validateAndFormatYouTubeUrl } = await import('../shared/youtube.js');
+      const result = validateAndFormatYouTubeUrl(url);
+      
+      if (!result.isValid) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({
+        message: "Valid YouTube URL",
+        videoId: result.videoId,
+        thumbnailUrl: result.thumbnailUrl,
+        embedUrl: result.embedUrl,
+        originalUrl: result.originalUrl
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to upload file" });
-    }
-  });
-
-  // Get uploaded files list (admin)
-  app.get("/api/admin/files", async (req, res) => {
-    try {
-      const uploadDir = './uploads';
-      const files = await fs.readdir(uploadDir);
-      const fileList = await Promise.all(
-        files.map(async (filename) => {
-          const filePath = path.join(uploadDir, filename);
-          const stats = await fs.stat(filePath);
-          const ext = path.extname(filename).toLowerCase();
-          return {
-            filename,
-            originalName: filename, // For existing files, use filename as original name
-            url: `/uploads/${filename}`,
-            size: stats.size,
-            type: ext === '.pdf' ? 'pdf' : 'video',
-            createdAt: stats.mtime
-          };
-        })
-      );
-      res.json(fileList);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch files" });
-    }
-  });
-
-  // Delete uploaded file (admin)
-  app.delete("/api/admin/files/:filename", async (req, res) => {
-    try {
-      const filename = req.params.filename;
-      const filePath = path.join('./uploads', filename);
-      
-      // Check if file exists
-      try {
-        await fs.access(filePath);
-      } catch {
-        return res.status(404).json({ message: "File not found" });
-      }
-      
-      // Delete the file
-      await fs.unlink(filePath);
-      res.json({ message: "File deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete file" });
+      res.status(500).json({ message: "Failed to validate YouTube URL" });
     }
   });
 
