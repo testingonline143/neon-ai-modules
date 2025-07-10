@@ -167,9 +167,9 @@ const Index = () => {
             Limited Time Offer
           </Badge>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Master AI in Just 
-            <span className="bg-gradient-primary bg-clip-text text-transparent"> ₹99</span>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            <span className="text-white">Master AI in Just </span>
+            <span className="text-primary font-extrabold"> ₹99</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
