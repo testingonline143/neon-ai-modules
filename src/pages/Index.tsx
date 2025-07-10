@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle } from "lucide-react";
+import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle, LogOut } from "lucide-react";
+import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const courseModules = [
   {
@@ -83,9 +86,39 @@ const testimonials = [
 ];
 
 const Index = () => {
+  const { currentUser, logout } = useAuth();
+  const { toast } = useToast();
+
   const handleEnrollClick = () => {
+    if (!currentUser) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to enroll in the course.",
+      });
+      return;
+    }
     // This will be connected to payment integration later
     console.log("Enrolling in course...");
+    toast({
+      title: "Redirecting to payment",
+      description: "You'll be redirected to complete your enrollment.",
+    });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Signed out",
+        description: "You've been successfully signed out.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+      });
+    }
   };
 
   return (
@@ -106,9 +139,23 @@ const Index = () => {
             <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
               Reviews
             </a>
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
+            {currentUser ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {currentUser.displayName || currentUser.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <AuthModal>
+                <Button variant="outline" size="sm">
+                  Sign In
+                </Button>
+              </AuthModal>
+            )}
           </nav>
         </div>
       </header>
