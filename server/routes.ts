@@ -77,9 +77,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  const httpServer = app.listen(5000, "0.0.0.0", () => {
-    console.log("Server running on http://0.0.0.0:5000");
-  });
-
-  return httpServer;
+  // Return the Express app instead of creating a server
+  return app;
 }
