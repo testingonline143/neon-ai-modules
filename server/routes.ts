@@ -101,6 +101,22 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get specific module by ID
+  app.get("/api/admin/modules/:id", async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const module = await db.select().from(modules).where(eq(modules.id, moduleId)).limit(1);
+      
+      if (module.length === 0) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      res.json(module[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch module" });
+    }
+  });
+
   // Configure multer for file uploads
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {

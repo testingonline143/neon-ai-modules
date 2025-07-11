@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAccess from "./pages/AdminAccess";
+import ModuleView from "./pages/ModuleView";
+import LessonView from "./pages/LessonView";
 import NotFound from "./pages/NotFound";
 import { Switch, Route, Redirect } from "wouter";
 
@@ -35,6 +37,12 @@ function AppRoutes() {
       </Route>
       <Route path="/admin">
         {currentUser ? <AdminDashboard /> : <Redirect to="/" />}
+      </Route>
+      <Route path="/module/:id">
+        {currentUser ? <ModuleView /> : <Redirect to="/" />}
+      </Route>
+      <Route path="/lesson/:id">
+        {currentUser ? <LessonView /> : <Redirect to="/" />}
       </Route>
       <Route component={NotFound} />
     </Switch>
