@@ -112,10 +112,10 @@ export function registerRoutes(app: Express) {
     storage,
     limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
     fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('video/') || file.mimetype === 'application/pdf') {
+      if (file.mimetype === 'application/pdf') {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type'), false);
+        cb(new Error('Only PDF files are allowed'), false);
       }
     }
   });
@@ -258,6 +258,27 @@ export function registerRoutes(app: Express) {
       res.json({ message: "Lesson deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete lesson" });
+    }
+  });
+
+  // PDF upload endpoint (admin)
+  app.post("/api/admin/upload-pdf", upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      const pdfUrl = `/uploads/${req.file.filename}`;
+      const pdfFileName = req.file.originalname;
+
+      res.json({
+        message: "PDF uploaded successfully",
+        pdfUrl,
+        pdfFileName,
+        fileSize: req.file.size
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload PDF" });
     }
   });
 

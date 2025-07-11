@@ -21,7 +21,11 @@ import {
   Video, 
   BarChart3,
   LogOut,
-  Save
+  Save,
+  FileText,
+  Upload,
+  Download,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,6 +55,8 @@ interface Lesson {
   youtubeUrl?: string;
   youtubeVideoId?: string;
   videoThumbnail?: string;
+  pdfUrl?: string;
+  pdfFileName?: string;
   order: number;
   duration: string;
   isPublished: boolean;
@@ -66,6 +72,8 @@ export default function AdminDashboard() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false);
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   // Fetch users
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
@@ -123,7 +131,7 @@ export default function AdminDashboard() {
   const lessonUpsertMutation = useMutation({
     mutationFn: async (lessonData: Partial<Lesson>) => {
       const url = lessonData.id ? `/api/admin/lessons/${lessonData.id}` : '/api/admin/lessons';
-      const method = lessonData.id ? 'PUT' : 'POST';
+      const method = lessonData.id ? 'PATCH' : 'POST';
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -136,7 +144,28 @@ export default function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/lessons'] });
       setIsLessonDialogOpen(false);
       setSelectedLesson(null);
+      setPdfFile(null);
       toast({ title: "Lesson saved successfully" });
+    }
+  });
+
+  // PDF upload mutation
+  const pdfUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      
+      const response = await fetch('/api/admin/upload-pdf', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) throw new Error('Failed to upload PDF');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "PDF uploaded successfully" });
+      return data;
     }
   });
 
@@ -165,6 +194,14 @@ export default function AdminDashboard() {
     
     try {
       let videoData = null;
+      let pdfData = null;
+      
+      // Upload PDF if provided
+      if (pdfFile) {
+        setUploadingPdf(true);
+        pdfData = await pdfUploadMutation.mutateAsync(pdfFile);
+        setUploadingPdf(false);
+      }
       
       // Validate YouTube URL if provided
       if (youtubeUrl) {
@@ -195,6 +232,8 @@ export default function AdminDashboard() {
         youtubeUrl: youtubeUrl || undefined,
         youtubeVideoId: videoData?.videoId || undefined,
         videoThumbnail: videoData?.thumbnailUrl || undefined,
+        pdfUrl: pdfData?.pdfUrl || selectedLesson?.pdfUrl || undefined,
+        pdfFileName: pdfData?.pdfFileName || selectedLesson?.pdfFileName || undefined,
         duration: formData.get('duration') as string,
         order: parseInt(formData.get('order') as string),
         isPublished: formData.get('isPublished') === 'on'
@@ -202,9 +241,10 @@ export default function AdminDashboard() {
       
       lessonUpsertMutation.mutate(lessonData);
     } catch (error) {
+      setUploadingPdf(false);
       toast({ 
         title: "Validation failed", 
-        description: "Please check your YouTube URL",
+        description: "Please check your inputs",
         variant: "destructive" 
       });
     }
@@ -537,6 +577,44 @@ export default function AdminDashboard() {
                         Enter any valid YouTube URL. The system will automatically extract the video ID and generate thumbnails.
                       </p>
                     </div>
+                    
+                    <div>
+                      <Label htmlFor="pdfUpload">PDF Upload</Label>
+                      <div className="space-y-2">
+                        <Input
+                          id="pdfUpload"
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                          className="file:bg-[#00FFD1] file:text-black file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4"
+                        />
+                        {selectedLesson?.pdfFileName && (
+                          <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <FileText className="w-4 h-4" />
+                            <span>Current: {selectedLesson.pdfFileName}</span>
+                            {selectedLesson.pdfUrl && (
+                              <a 
+                                href={selectedLesson.pdfUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[#00FFD1] hover:underline"
+                              >
+                                <Download className="w-4 h-4 inline" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {pdfFile && (
+                          <div className="flex items-center gap-2 text-sm text-[#00FFD1]">
+                            <Upload className="w-4 h-4" />
+                            <span>Selected: {pdfFile.name}</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload a PDF file for this lesson. Maximum size: 100MB
+                      </p>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="duration">Duration</Label>
@@ -559,9 +637,27 @@ export default function AdminDashboard() {
                         <Label htmlFor="isPublished">Published</Label>
                       </div>
                     </div>
-                    <Button type="submit" className="w-full bg-[#00FFD1] hover:bg-[#00FFD1]/90 text-black">
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Lesson
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-[#00FFD1] hover:bg-[#00FFD1]/90 text-black"
+                      disabled={uploadingPdf || lessonUpsertMutation.isPending}
+                    >
+                      {uploadingPdf ? (
+                        <>
+                          <Upload className="w-4 h-4 mr-2 animate-spin" />
+                          Uploading PDF...
+                        </>
+                      ) : lessonUpsertMutation.isPending ? (
+                        <>
+                          <Save className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Lesson
+                        </>
+                      )}
                     </Button>
                   </form>
                 </DialogContent>
@@ -577,6 +673,7 @@ export default function AdminDashboard() {
                       <TableHead>Module</TableHead>
                       <TableHead>Order</TableHead>
                       <TableHead>Duration</TableHead>
+                      <TableHead>Content</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -590,6 +687,35 @@ export default function AdminDashboard() {
                         </TableCell>
                         <TableCell>{lesson.order}</TableCell>
                         <TableCell>{lesson.duration}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {lesson.youtubeUrl && (
+                              <Badge variant="outline" className="text-red-500 border-red-500">
+                                <Video className="w-3 h-3 mr-1" />
+                                YouTube
+                              </Badge>
+                            )}
+                            {lesson.pdfUrl && (
+                              <div className="flex items-center gap-1">
+                                <Badge variant="outline" className="text-blue-500 border-blue-500">
+                                  <FileText className="w-3 h-3 mr-1" />
+                                  PDF
+                                </Badge>
+                                <a 
+                                  href={lesson.pdfUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-[#00FFD1] hover:text-[#00FFD1]/80"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </a>
+                              </div>
+                            )}
+                            {!lesson.youtubeUrl && !lesson.pdfUrl && (
+                              <span className="text-gray-500 text-sm">No content</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge variant={lesson.isPublished ? "default" : "secondary"}>
                             {lesson.isPublished ? "Published" : "Draft"}
@@ -622,10 +748,64 @@ export default function AdminDashboard() {
           <TabsContent value="content" className="space-y-6">
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle>YouTube Video Management</CardTitle>
-                <CardDescription>Manage YouTube videos for your course lessons</CardDescription>
+                <CardTitle>Content Management</CardTitle>
+                <CardDescription>Manage YouTube videos and PDF files for your course lessons</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                
+                {/* PDF Management Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-white">PDF Files</h3>
+                  <p className="text-sm text-gray-400">Upload and manage PDF files for your lessons</p>
+                  
+                  <div className="grid gap-4">
+                    {lessons.filter(lesson => lesson.pdfUrl).map((lesson) => (
+                      <div key={lesson.id} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <h4 className="font-medium text-white">{lesson.title}</h4>
+                            <p className="text-sm text-gray-400">
+                              {lesson.pdfFileName} • {modules.find(m => m.id === lesson.moduleId)?.title}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <a 
+                            href={lesson.pdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-[#00FFD1] hover:text-[#00FFD1]/80"
+                          >
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4 mr-2" />
+                              View PDF
+                            </Button>
+                          </a>
+                          <a 
+                            href={lesson.pdfUrl} 
+                            download={lesson.pdfFileName}
+                            className="text-[#00FFD1] hover:text-[#00FFD1]/80"
+                          >
+                            <Button variant="outline" size="sm">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                    {lessons.filter(lesson => lesson.pdfUrl).length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                        <p>No PDF files uploaded yet</p>
+                        <p className="text-sm">Upload PDFs when creating or editing lessons</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-800 pt-6"></div>
                 {/* YouTube URL Testing Tool */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">YouTube URL Validator</h3>

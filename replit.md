@@ -124,3 +124,14 @@ The application is designed as a monorepo with shared TypeScript definitions, ma
 - Created admin API endpoints for user management and content creation
 - Removed admin access button from student dashboard for security
 - Added proper admin routing with authentication checks
+
+### PDF Upload System Implementation (July 2025)
+- Added PDF upload functionality to lessons alongside YouTube videos
+- Extended database schema with pdf_url and pdf_file_name columns
+- Implemented secure PDF file upload API endpoint with multer integration
+- Created comprehensive PDF management interface in admin dashboard
+- Added PDF preview and download capabilities for lesson materials
+- Enhanced lesson creation/editing forms with PDF upload support
+- Implemented proper file validation (PDF only, 100MB limit)
+- Added visual indicators for lessons with YouTube videos and/or PDFs
+- Created dedicated content management tab for PDF and video overview
