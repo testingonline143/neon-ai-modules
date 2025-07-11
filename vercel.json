@@ -15,6 +15,6 @@
   "installCommand": "npm install",
   "framework": "vite",
   "env": {
-    "DATABASE_URL": "@database_url"
+    "DATABASE_URL": "postgresql://neondb_owner:npg_21ww2Cqo8BEu@ep-patient-hill-a800o59p-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
   }
 }

@@ -28,7 +28,7 @@ Vercel will:
 In your Vercel dashboard, add this environment variable:
 
 **Key:** `DATABASE_URL`
-**Value:** `postgresql://neondb_owner:npg_4BIdHy6JEUjv@ep-orange-recipe-ae5s6eff-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+**Value:** `postgresql://neondb_owner:npg_21ww2Cqo8BEu@ep-patient-hill-a800o59p-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
 
 ## Alternative: GitHub Integration
 
