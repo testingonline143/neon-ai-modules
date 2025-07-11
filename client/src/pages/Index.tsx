@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle, LogOut } from "lucide-react";
+import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle, LogOut, Menu, X } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const courseModules = [
   {
@@ -88,6 +89,7 @@ const testimonials = [
 const Index = () => {
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleEnrollClick = () => {
     if (!currentUser) {
@@ -132,6 +134,8 @@ const Index = () => {
             </div>
             <h1 className="text-xl font-bold">AI 99 Course</h1>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#modules" className="text-muted-foreground hover:text-foreground transition-colors">
               Modules
@@ -157,7 +161,72 @@ const Index = () => {
               </AuthModal>
             )}
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur">
+            <nav className="container mx-auto px-4 py-4 space-y-4">
+              <a 
+                href="#modules" 
+                className="block text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Modules
+              </a>
+              <a 
+                href="#testimonials" 
+                className="block text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Reviews
+              </a>
+              {currentUser ? (
+                <div className="space-y-3">
+                  <div className="text-sm text-muted-foreground">
+                    Welcome, {currentUser.displayName || currentUser.email}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <AuthModal>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Button>
+                </AuthModal>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
