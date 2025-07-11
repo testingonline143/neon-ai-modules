@@ -211,34 +211,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-gray-400 text-center py-8">
-                <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No recent activity</p>
-                <p className="text-sm">Start your first module to see your progress here</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle>Achievements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-gray-400 text-center py-8">
-                <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No achievements yet</p>
-                <p className="text-sm">Complete lessons to earn your first badge</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
       </div>
     </div>
   );
