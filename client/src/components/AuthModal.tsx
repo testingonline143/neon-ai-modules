@@ -23,7 +23,8 @@ export const AuthModal = ({ children }: AuthModalProps) => {
   const handleTriggerClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsOpen(true);
+    // Use setTimeout to ensure the mobile menu closes first
+    setTimeout(() => setIsOpen(true), 100);
   };
 
   const [loginForm, setLoginForm] = useState({

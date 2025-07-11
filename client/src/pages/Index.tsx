@@ -1,11 +1,224 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle, LogOut, Menu, X } from "lucide-react";
+import { BookOpen, Play, Download, Star, Users, Clock, CheckCircle, LogOut, Menu, X, Loader2 } from "lucide-react";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+
+// Mobile Auth Modal Component
+const MobileAuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const { login, signup } = useAuth();
+  const { toast } = useToast();
+
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  });
+
+  const [signupForm, setSignupForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      await login(loginForm.email, loginForm.password);
+      onClose();
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (signupForm.password !== signupForm.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      await signup(signupForm.email, signupForm.password, signupForm.name);
+      onClose();
+      toast({
+        title: "Account created!",
+        description: "Welcome to AI 99 Course! You can now access your dashboard.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: error.message || "Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+      <div className="bg-background rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Authentication</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        
+        <p className="text-muted-foreground mb-6">
+          Sign in to your account or create a new one to access the AI course.
+        </p>
+
+        <div className="flex rounded-lg border p-1 mb-6">
+          <button
+            onClick={() => setActiveTab('login')}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'login'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => setActiveTab('signup')}
+            className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'signup'
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        {activeTab === 'login' ? (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="mobile-login-email" className="text-sm font-medium">
+                Email
+              </label>
+              <input
+                id="mobile-login-email"
+                type="email"
+                placeholder="your@email.com"
+                value={loginForm.email}
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="mobile-login-password" className="text-sm font-medium">
+                Password
+              </label>
+              <input
+                id="mobile-login-password"
+                type="password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sign In
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="mobile-signup-name" className="text-sm font-medium">
+                Full Name
+              </label>
+              <input
+                id="mobile-signup-name"
+                type="text"
+                placeholder="Your full name"
+                value={signupForm.name}
+                onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="mobile-signup-email" className="text-sm font-medium">
+                Email
+              </label>
+              <input
+                id="mobile-signup-email"
+                type="email"
+                placeholder="your@email.com"
+                value={signupForm.email}
+                onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="mobile-signup-password" className="text-sm font-medium">
+                Password
+              </label>
+              <input
+                id="mobile-signup-password"
+                type="password"
+                value={signupForm.password}
+                onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="mobile-signup-confirm" className="text-sm font-medium">
+                Confirm Password
+              </label>
+              <input
+                id="mobile-signup-confirm"
+                type="password"
+                value={signupForm.confirmPassword}
+                onChange={(e) => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Account
+            </Button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const courseModules = [
   {
@@ -90,6 +303,7 @@ const Index = () => {
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleEnrollClick = () => {
     if (!currentUser) {
@@ -213,16 +427,17 @@ const Index = () => {
                   </Button>
                 </div>
               ) : (
-                <AuthModal>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Sign In
-                  </Button>
-                </AuthModal>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setTimeout(() => setShowAuthModal(true), 150);
+                  }}
+                >
+                  Sign In
+                </Button>
               )}
             </nav>
           </div>
@@ -406,6 +621,13 @@ const Index = () => {
         </div>
       </footer>
 
+      {/* Mobile Auth Modal */}
+      {showAuthModal && (
+        <MobileAuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+        />
+      )}
     </div>
   );
 };
