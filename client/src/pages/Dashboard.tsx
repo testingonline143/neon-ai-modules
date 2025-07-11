@@ -168,46 +168,94 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400">Overall Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#00FFD1]">{overallProgress}%</div>
-              <Progress value={overallProgress} className="mt-2" />
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400">Modules Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{completedModules}/{modules.length}</div>
-              <div className="text-sm text-gray-400">modules</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400">Lessons Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{completedLessons}/{totalLessons}</div>
-              <div className="text-sm text-gray-400">lessons</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-400">Time Spent</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">0h</div>
-              <div className="text-sm text-gray-400">this week</div>
-            </CardContent>
-          </Card>
+        <div className="mb-8">
+          {/* Desktop Layout */}
+          <div className="hidden md:grid grid-cols-4 gap-6">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-400">Overall Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-[#00FFD1]">{overallProgress}%</div>
+                <Progress value={overallProgress} className="mt-2" />
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-400">Modules Completed</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{completedModules}/{modules.length}</div>
+                <div className="text-sm text-gray-400">modules</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-400">Lessons Completed</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{completedLessons}/{totalLessons}</div>
+                <div className="text-sm text-gray-400">lessons</div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-gray-400">Time Spent</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">0h</div>
+                <div className="text-sm text-gray-400">this week</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Mobile Horizontal Scrollable Layout */}
+          <div className="md:hidden">
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              <Card className="bg-gray-900 border-gray-800 flex-shrink-0 w-44 snap-start">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-400">Overall Progress</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-[#00FFD1]">{overallProgress}%</div>
+                  <Progress value={overallProgress} className="mt-2" />
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gray-900 border-gray-800 flex-shrink-0 w-44 snap-start">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-400">Modules Completed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{completedModules}/{modules.length}</div>
+                  <div className="text-sm text-gray-400">modules</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gray-900 border-gray-800 flex-shrink-0 w-44 snap-start">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-400">Lessons Completed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">{completedLessons}/{totalLessons}</div>
+                  <div className="text-sm text-gray-400">lessons</div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gray-900 border-gray-800 flex-shrink-0 w-44 snap-start">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-gray-400">Time Spent</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-white">0h</div>
+                  <div className="text-sm text-gray-400">this week</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
 
         {/* Course Modules */}
