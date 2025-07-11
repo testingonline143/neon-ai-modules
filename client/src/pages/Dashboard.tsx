@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, BookOpen, Clock, CheckCircle, Trophy, User, LogOut } from "lucide-react";
+import { PlayCircle, BookOpen, Clock, CheckCircle, Trophy, User, LogOut, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 interface Module {
   id: number;
@@ -22,6 +23,7 @@ interface Module {
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
   const [, navigate] = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Fetch published modules from the database
   const { data: modules = [] } = useQuery({
@@ -75,7 +77,8 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold text-white">AI 99 Course</h1>
             </div>
             
-            <div className="flex items-center space-x-6">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
               <div className="flex items-center space-x-4">
                 <Badge variant="outline" className="border-[#00FFD1] text-[#00FFD1]">
                   Modules
@@ -98,7 +101,49 @@ export default function Dashboard() {
                 Sign Out
               </Button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-gray-300 hover:text-white hover:bg-gray-800"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-gray-800">
+              <div className="flex flex-col space-y-4 pt-4">
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="border-[#00FFD1] text-[#00FFD1]">
+                    Modules
+                  </Badge>
+                  <Badge variant="outline" className="border-gray-600 text-gray-300">
+                    Reviews
+                  </Badge>
+                </div>
+                
+                <div className="text-sm text-gray-300">
+                  Welcome, {currentUser?.displayName || currentUser?.email}
+                </div>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="justify-start text-gray-300 hover:text-white hover:bg-gray-800"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

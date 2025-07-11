@@ -1,9 +1,11 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Download, FileText, Play } from "lucide-react";
+import { ArrowLeft, Download, FileText, Play, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Lesson {
   id: number;
@@ -23,6 +25,8 @@ interface Lesson {
 export default function LessonView() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
+  const { logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const lessonId = parseInt(id || '0');
 
@@ -47,6 +51,11 @@ export default function LessonView() {
     if (lesson?.pdfUrl) {
       window.open(lesson.pdfUrl, '_blank');
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   if (isLoading) {
@@ -87,16 +96,60 @@ export default function LessonView() {
                 className="text-gray-300 hover:text-white hover:bg-gray-800"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Module
+                <span className="hidden sm:inline">Back to Module</span>
+                <span className="sm:hidden">Back</span>
               </Button>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-[#00FFD1] rounded-lg flex items-center justify-center">
                   <span className="text-black font-bold text-sm">AI</span>
                 </div>
-                <h1 className="text-xl font-bold text-white">AI 99 Course</h1>
+                <h1 className="text-xl font-bold text-white hidden sm:block">AI 99 Course</h1>
+                <h1 className="text-lg font-bold text-white sm:hidden">AI Course</h1>
               </div>
             </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-gray-300 hover:text-white hover:bg-gray-800"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
+
+            {/* Desktop Logout */}
+            <div className="hidden md:flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-gray-300 hover:text-white hover:bg-gray-800"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-gray-800">
+              <div className="flex flex-col space-y-4 pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="justify-start text-gray-300 hover:text-white hover:bg-gray-800"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
