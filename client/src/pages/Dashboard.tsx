@@ -16,75 +16,41 @@ interface Module {
   progress: number;
 }
 
-const modules: Module[] = [
-  {
-    id: 1,
-    title: "Introduction to AI",
-    description: "Fundamentals of artificial intelligence and machine learning",
-    lessons: 8,
-    duration: "2 hours",
-    completed: false,
-    progress: 0
-  },
-  {
-    id: 2,
-    title: "Machine Learning Basics",
-    description: "Core concepts of supervised and unsupervised learning",
-    lessons: 12,
-    duration: "3 hours",
-    completed: false,
-    progress: 0
-  },
-  {
-    id: 3,
-    title: "Neural Networks",
-    description: "Deep dive into neural network architectures",
-    lessons: 10,
-    duration: "2.5 hours",
-    completed: false,
-    progress: 0
-  },
-  {
-    id: 4,
-    title: "Deep Learning",
-    description: "Advanced deep learning techniques and applications",
-    lessons: 15,
-    duration: "4 hours",
-    completed: false,
-    progress: 0
-  },
-  {
-    id: 5,
-    title: "Natural Language Processing",
-    description: "Text processing and language understanding with AI",
-    lessons: 9,
-    duration: "2.5 hours",
-    completed: false,
-    progress: 0
-  },
-  {
-    id: 6,
-    title: "AI in Practice",
-    description: "Real-world applications and project implementations",
-    lessons: 11,
-    duration: "3.5 hours",
-    completed: false,
-    progress: 0
-  }
-];
+// We'll fetch modules from the API instead of using hardcoded data
 
 export default function Dashboard() {
   const { currentUser, logout } = useAuth();
+  
+  // Fetch published modules from the database
+  const { data: modules = [] } = useQuery({
+    queryKey: ['/api/modules'],
+    queryFn: async () => {
+      const response = await fetch('/api/modules');
+      if (!response.ok) throw new Error('Failed to fetch modules');
+      const data = await response.json();
+      // Transform the data to match the expected Module interface
+      return data.map((module: any) => ({
+        id: module.id,
+        title: module.title,
+        description: module.description,
+        lessons: module.lessons,
+        duration: module.duration,
+        completed: false, // TODO: Calculate based on user progress
+        progress: 0 // TODO: Calculate based on user progress
+      }));
+    }
+  });
   
   const { data: enrollment } = useQuery({
     queryKey: ['/api/enrollments', currentUser?.uid],
     enabled: !!currentUser,
   });
 
-  const overallProgress = 0; // Calculate from enrollment data
+  // Calculate statistics based on fetched modules
   const completedModules = modules.filter(m => m.completed).length;
-  const totalLessons = modules.reduce((acc, m) => acc + m.lessons, 0);
-  const completedLessons = 0; // Calculate from progress
+  const totalLessons = modules.reduce((sum, m) => sum + m.lessons, 0);
+  const completedLessons = modules.reduce((sum, m) => sum + (m.completed ? m.lessons : Math.floor(m.lessons * m.progress / 100)), 0);
+  const overallProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   const handleSignOut = async () => {
     await logout();
@@ -167,7 +133,7 @@ export default function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-400">Modules Completed</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">{completedModules}/6</div>
+              <div className="text-2xl font-bold text-white">{completedModules}/{modules.length}</div>
               <div className="text-sm text-gray-400">modules</div>
             </CardContent>
           </Card>

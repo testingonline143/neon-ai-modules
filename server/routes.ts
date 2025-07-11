@@ -91,6 +91,16 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get published modules for student dashboard
+  app.get("/api/modules", async (req, res) => {
+    try {
+      const publishedModules = await db.select().from(modules).where(eq(modules.isPublished, true));
+      res.json(publishedModules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch modules" });
+    }
+  });
+
   // Configure multer for file uploads
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
