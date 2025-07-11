@@ -218,10 +218,7 @@ const Index = () => {
                     variant="outline" 
                     size="sm" 
                     className="w-full"
-                    onMouseDown={() => {
-                      // Close mobile menu when auth modal is triggered
-                      setTimeout(() => setIsMobileMenuOpen(false), 50);
-                    }}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Sign In
                   </Button>
@@ -408,6 +405,7 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
     </div>
   );
 };

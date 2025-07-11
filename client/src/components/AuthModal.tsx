@@ -19,6 +19,13 @@ export const AuthModal = ({ children }: AuthModalProps) => {
   const { login, signup } = useAuth();
   const { toast } = useToast();
 
+  // Handle mobile touch events properly
+  const handleTriggerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(true);
+  };
+
   const [loginForm, setLoginForm] = useState({
     email: '',
     password: ''
@@ -86,13 +93,14 @@ export const AuthModal = ({ children }: AuthModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+    <>
+      <div onClick={handleTriggerClick} className="contents">
         {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
-        <DialogTitle>Authentication</DialogTitle>
-        <DialogDescription>Sign in to your account or create a new one to access the AI course.</DialogDescription>
+      </div>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogTitle>Authentication</DialogTitle>
+          <DialogDescription>Sign in to your account or create a new one to access the AI course.</DialogDescription>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
@@ -200,7 +208,8 @@ export const AuthModal = ({ children }: AuthModalProps) => {
             </Card>
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
