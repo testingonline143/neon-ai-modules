@@ -206,7 +206,6 @@ export default function Dashboard() {
                   
                   <Button 
                     className="w-full bg-[#00FFD1] hover:bg-[#00FFD1]/90 text-black font-medium"
-                    disabled={module.id > 1 && !modules[module.id - 2].completed}
                     onClick={() => handleStartModule(module.id)}
                   >
                     <PlayCircle className="w-4 h-4 mr-2" />

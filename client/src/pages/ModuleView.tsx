@@ -55,6 +55,7 @@ export default function ModuleView() {
       const response = await fetch('/api/admin/lessons');
       if (!response.ok) throw new Error('Failed to fetch lessons');
       const allLessons = await response.json();
+      if (!Array.isArray(allLessons)) return [];
       return allLessons
         .filter((lesson: Lesson) => lesson.moduleId === moduleId && lesson.isPublished)
         .sort((a: Lesson, b: Lesson) => a.order - b.order);
