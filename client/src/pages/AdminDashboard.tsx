@@ -310,13 +310,70 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 bg-gray-900">
+          {/* Desktop Tabs */}
+          <TabsList className="hidden md:grid w-full grid-cols-5 bg-gray-900">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="modules">Modules</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
             <TabsTrigger value="content">YouTube Videos</TabsTrigger>
           </TabsList>
+
+          {/* Mobile Scrollable Tabs */}
+          <div className="md:hidden">
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors snap-start ${
+                  activeTab === "overview" 
+                    ? "bg-[#00FFD1] text-black" 
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab("users")}
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors snap-start ${
+                  activeTab === "users" 
+                    ? "bg-[#00FFD1] text-black" 
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Users
+              </button>
+              <button
+                onClick={() => setActiveTab("modules")}
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors snap-start ${
+                  activeTab === "modules" 
+                    ? "bg-[#00FFD1] text-black" 
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Modules
+              </button>
+              <button
+                onClick={() => setActiveTab("lessons")}
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors snap-start ${
+                  activeTab === "lessons" 
+                    ? "bg-[#00FFD1] text-black" 
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                Lessons
+              </button>
+              <button
+                onClick={() => setActiveTab("content")}
+                className={`flex-shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors snap-start ${
+                  activeTab === "content" 
+                    ? "bg-[#00FFD1] text-black" 
+                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                YouTube Videos
+              </button>
+            </div>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
