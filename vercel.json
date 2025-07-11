@@ -1,20 +1,17 @@
 {
   "functions": {
     "api/**/*.ts": {
-      "runtime": "@vercel/node@20.x"
+      "runtime": "@vercel/node@18.x"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "env": {
-    "DATABASE_URL": "postgresql://neondb_owner:npg_21ww2Cqo8BEu@ep-patient-hill-a800o59p-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-  }
+  ]
 }

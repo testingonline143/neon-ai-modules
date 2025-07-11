@@ -1,19 +1,20 @@
 [build]
   command = "npm run build"
-  functions = "api"
   publish = "dist/public"
-
-[build.environment]
-  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  directory = "api"
+  node_bundler = "nft"
+
+[build.environment]
+  DATABASE_URL = "postgresql://neondb_owner:npg_21ww2Cqo8BEu@ep-patient-hill-a800o59p-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
