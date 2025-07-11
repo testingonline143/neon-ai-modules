@@ -1,7 +1,11 @@
 import { QueryClient } from "@tanstack/react-query";
 
 const apiRequest = async (url: string, options?: RequestInit) => {
-  const response = await fetch(url, {
+  // Use environment-specific API URL or fallback to current origin
+  const baseUrl = import.meta.env.VITE_API_URL || window.location.origin;
+  const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
+  
+  const response = await fetch(fullUrl, {
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,

@@ -135,3 +135,15 @@ The application is designed as a monorepo with shared TypeScript definitions, ma
 - Implemented proper file validation (PDF only, 100MB limit)
 - Added visual indicators for lessons with YouTube videos and/or PDFs
 - Created dedicated content management tab for PDF and video overview
+
+### Serverless Architecture Migration (July 2025)
+- Migrated from persistent Express server to serverless functions architecture
+- Created individual API endpoints as serverless functions in /api directory
+- Implemented Neon HTTP-based database connections for serverless compatibility
+- Removed session storage and persistent server processes
+- Added Vercel and Netlify deployment configurations
+- Updated database connections to use connection pooling per request
+- Modified frontend API client to work with serverless endpoints
+- Created static HTML demo page for testing serverless functionality
+- Added comprehensive deployment documentation for multiple platforms
+- Implemented CORS handling for cross-origin requests in serverless environment

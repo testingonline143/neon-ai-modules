@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Course Platform</title>
+    <meta name="description" content="Learn AI and Machine Learning with our comprehensive course platform featuring interactive lessons and hands-on projects.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #00FFD1, #0099FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 209, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #00FFD1;
+            box-shadow: 0 20px 40px rgba(0, 255, 209, 0.1);
+        }
+        
+        .feature-card h3 {
+            color: #00FFD1;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            text-align: center;
+            margin-top: 4rem;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #00FFD1, #0099FF);
+            color: #0f0f23;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 209, 0.3);
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(0, 255, 209, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 209, 0.3);
+        }
+        
+        .status.success {
+            background: rgba(0, 255, 100, 0.1);
+            border-color: rgba(0, 255, 100, 0.3);
+        }
+        
+        .status.error {
+            background: rgba(255, 0, 100, 0.1);
+            border-color: rgba(255, 0, 100, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Course Platform</h1>
+            <p>Master artificial intelligence and machine learning with our comprehensive, hands-on course platform</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <h3>Interactive Lessons</h3>
+                <p>Learn through engaging video content, hands-on exercises, and real-world projects that build practical AI skills.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Expert Instructors</h3>
+                <p>Learn from industry professionals and AI researchers who bring real-world experience to every lesson.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Flexible Learning</h3>
+                <p>Study at your own pace with 24/7 access to course materials, progress tracking, and personalized learning paths.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Practical Projects</h3>
+                <p>Build a portfolio of AI projects including neural networks, computer vision, and natural language processing applications.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Community Support</h3>
+                <p>Join a community of learners, get help from peers, and collaborate on challenging AI projects.</p>
+            </div>
+            
+            <div class="feature-card">
+                <h3>Industry Recognition</h3>
+                <p>Earn certificates and build skills that are valued by top tech companies and AI research institutions.</p>
+            </div>
+        </div>
+        
+        <div class="cta-section">
+            <a href="#" class="cta-button" onclick="checkServerlessAPI()">Start Learning Today</a>
+            <div id="status" class="status" style="display: none;">
+                <p id="status-message">Checking platform status...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkServerlessAPI() {
+            const statusDiv = document.getElementById('status');
+            const statusMessage = document.getElementById('status-message');
+            
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status';
+            statusMessage.textContent = 'Checking serverless API status...';
+            
+            try {
+                // Test health endpoint
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    statusDiv.className = 'status success';
+                    statusMessage.textContent = '✓ Platform is ready! Serverless functions are working correctly.';
+                    
+                    // Test modules endpoint
+                    const modulesResponse = await fetch('/api/modules');
+                    const modules = await modulesResponse.json();
+                    
+                    setTimeout(() => {
+                        statusMessage.textContent = `✓ Found ${modules.length} course modules available. Platform is fully operational!`;
+                    }, 1000);
+                } else {
+                    throw new Error('Health check failed');
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusMessage.textContent = '⚠ Platform is in development mode. Serverless functions may not be fully configured yet.';
+                console.error('API check failed:', error);
+            }
+        }
+        
+        // Auto-check on page load
+        window.onload = () => {
+            setTimeout(checkServerlessAPI, 1000);
+        };
+    </script>
+</body>
+</html>
