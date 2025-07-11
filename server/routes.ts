@@ -117,6 +117,23 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Delete module by ID
+  app.delete("/api/admin/modules/:id", async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      
+      // First, delete all lessons associated with this module
+      await db.delete(lessons).where(eq(lessons.moduleId, moduleId));
+      
+      // Then delete the module
+      const result = await db.delete(modules).where(eq(modules.id, moduleId));
+      
+      res.json({ message: "Module and associated lessons deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete module" });
+    }
+  });
+
   // Configure multer for file uploads
   const storage = multer.diskStorage({
     destination: async (req, file, cb) => {

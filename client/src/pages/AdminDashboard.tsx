@@ -169,8 +169,30 @@ export default function AdminDashboard() {
     }
   });
 
+  // Delete module mutation
+  const deleteModuleMutation = useMutation({
+    mutationFn: async (moduleId: number) => {
+      const response = await fetch(`/api/admin/modules/${moduleId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete module');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/modules'] });
+      toast({ title: "Module deleted successfully" });
+    }
+  });
+
   const handleSignOut = async () => {
     await logout();
+  };
+
+  const handleDeleteModule = (moduleId: number) => {
+    if (window.confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
+      deleteModuleMutation.mutate(moduleId);
+    }
   };
 
   const handleModuleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -483,6 +505,14 @@ export default function AdminDashboard() {
                           }}
                         >
                           <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteModule(module.id)}
+                          className="text-red-400 border-red-400 hover:bg-red-400 hover:text-white"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
