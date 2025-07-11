@@ -90,7 +90,7 @@ export const AuthModal = ({ children }: AuthModalProps) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogTitle>Authentication</DialogTitle>
         <DialogDescription>Sign in to your account or create a new one to access the AI course.</DialogDescription>
         <Tabs defaultValue="login" className="w-full">
