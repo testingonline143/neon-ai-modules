@@ -101,6 +101,55 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Get specific module by ID for students
+  app.get("/api/modules/:id", async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.id);
+      const module = await db.select().from(modules).where(eq(modules.id, moduleId)).limit(1);
+      
+      if (module.length === 0) {
+        return res.status(404).json({ message: "Module not found" });
+      }
+      
+      res.json(module[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch module" });
+    }
+  });
+
+  // Get lessons for a specific module for students
+  app.get("/api/lessons/:moduleId", async (req, res) => {
+    try {
+      const moduleId = parseInt(req.params.moduleId);
+      const moduleeLessons = await db.select()
+        .from(lessons)
+        .where(eq(lessons.moduleId, moduleId))
+        .orderBy(lessons.order);
+      
+      // Only return published lessons
+      const publishedLessons = moduleeLessons.filter(lesson => lesson.isPublished);
+      res.json(publishedLessons);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lessons" });
+    }
+  });
+
+  // Get specific lesson by ID for students
+  app.get("/api/lesson/:id", async (req, res) => {
+    try {
+      const lessonId = parseInt(req.params.id);
+      const lesson = await db.select().from(lessons).where(eq(lessons.id, lessonId)).limit(1);
+      
+      if (lesson.length === 0) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+      
+      res.json(lesson[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch lesson" });
+    }
+  });
+
   // Get specific module by ID
   app.get("/api/admin/modules/:id", async (req, res) => {
     try {

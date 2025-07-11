@@ -27,13 +27,12 @@ export default function LessonView() {
   const lessonId = parseInt(id || '0');
 
   // Fetch lesson details
-  const { data: lesson } = useQuery({
-    queryKey: ['/api/admin/lessons', lessonId],
+  const { data: lesson, isLoading } = useQuery({
+    queryKey: ['/api/lesson', lessonId],
     queryFn: async () => {
-      const response = await fetch('/api/admin/lessons');
-      if (!response.ok) throw new Error('Failed to fetch lessons');
-      const allLessons = await response.json();
-      return allLessons.find((l: Lesson) => l.id === lessonId);
+      const response = await fetch(`/api/lesson/${lessonId}`);
+      if (!response.ok) throw new Error('Failed to fetch lesson');
+      return response.json();
     },
     enabled: !!lessonId
   });
@@ -50,11 +49,25 @@ export default function LessonView() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-[#00FFD1] text-xl">Loading lesson...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!lesson) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">Loading lesson...</h2>
+          <h2 className="text-xl font-bold mb-2">Lesson not found</h2>
+          <p className="text-gray-400 mb-4">The lesson you're looking for doesn't exist.</p>
+          <Button onClick={() => navigate('/dashboard')} className="bg-[#00FFD1] hover:bg-[#00FFD1]/80 text-black">
+            Back to Dashboard
+          </Button>
         </div>
       </div>
     );

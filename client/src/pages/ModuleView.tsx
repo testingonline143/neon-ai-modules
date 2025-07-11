@@ -38,10 +38,10 @@ export default function ModuleView() {
   const moduleId = parseInt(id || '0');
 
   // Fetch module details
-  const { data: module } = useQuery({
-    queryKey: ['/api/admin/modules', moduleId],
+  const { data: module, isLoading: moduleLoading } = useQuery({
+    queryKey: ['/api/modules', moduleId],
     queryFn: async () => {
-      const response = await fetch(`/api/admin/modules/${moduleId}`);
+      const response = await fetch(`/api/modules/${moduleId}`);
       if (!response.ok) throw new Error('Failed to fetch module');
       return response.json();
     },
@@ -49,16 +49,13 @@ export default function ModuleView() {
   });
 
   // Fetch lessons for this module
-  const { data: lessons = [] } = useQuery({
-    queryKey: ['/api/admin/lessons', moduleId],
+  const { data: lessons = [], isLoading: lessonsLoading } = useQuery({
+    queryKey: ['/api/lessons', moduleId],
     queryFn: async () => {
-      const response = await fetch('/api/admin/lessons');
+      const response = await fetch(`/api/lessons/${moduleId}`);
       if (!response.ok) throw new Error('Failed to fetch lessons');
-      const allLessons = await response.json();
-      if (!Array.isArray(allLessons)) return [];
-      return allLessons
-        .filter((lesson: Lesson) => lesson.moduleId === moduleId && lesson.isPublished)
-        .sort((a: Lesson, b: Lesson) => a.order - b.order);
+      const lessonData = await response.json();
+      return Array.isArray(lessonData) ? lessonData : [];
     },
     enabled: !!moduleId
   });
@@ -70,6 +67,14 @@ export default function ModuleView() {
   const handleLessonClick = (lessonId: number) => {
     navigate(`/lesson/${lessonId}`);
   };
+
+  if (moduleLoading || lessonsLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#00FFD1] text-xl">Loading module...</div>
+      </div>
+    );
+  }
 
   if (!module) {
     return (
