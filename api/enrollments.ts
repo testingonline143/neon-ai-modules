@@ -1,50 +1,46 @@
-import { neonConfig } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { enrollments } from '../shared/schema';
 import { eq } from 'drizzle-orm';
-import * as schema from "../shared/schema";
 
-neonConfig.fetchConnectionCache = true;
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
 export default async function handler(req: any, res: any) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
-
-  const db = drizzle(process.env.DATABASE_URL!, { schema });
 
   if (req.method === 'GET') {
     try {
-      const allEnrollments = await db.select().from(schema.enrollments);
-      res.status(200).json(allEnrollments);
+      const allEnrollments = await db.select().from(enrollments);
+      res.json(allEnrollments);
     } catch (error) {
-      console.error('Failed to fetch enrollments:', error);
+      console.error('Error fetching enrollments:', error);
       res.status(500).json({ message: "Failed to fetch enrollments" });
     }
   } else if (req.method === 'PATCH') {
     try {
-      const { id } = req.query;
-      const { progress } = req.body;
-
+      const { id, progress } = req.body;
+      
       const updated = await db
-        .update(schema.enrollments)
+        .update(enrollments)
         .set({ 
           progress,
           completedAt: progress === 100 ? new Date() : null,
           updatedAt: new Date()
         })
-        .where(eq(schema.enrollments.id, parseInt(id)))
+        .where(eq(enrollments.id, parseInt(id)))
         .returning();
 
-      res.status(200).json(updated[0]);
+      res.json(updated[0]);
     } catch (error) {
-      console.error('Failed to update enrollment:', error);
+      console.error('Error updating enrollment:', error);
       res.status(500).json({ message: "Failed to update progress" });
     }
   } else {

@@ -3,29 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon AI Modules</title>
+    <title>AI Course Platform - Serverless</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #0a0a0a;
+            color: #ffffff;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
             padding: 20px;
-            background-color: #1a1a1a;
-            color: white;
         }
-        .container {
-            text-align: center;
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px;
         }
-        h1 {
-            color: #00ff88;
+        .header h1 { 
+            color: #00FFD1; 
+            margin: 0;
         }
+        .api-test { 
+            background: #1a1a1a; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        .api-test h3 { 
+            color: #00FFD1; 
+            margin-top: 0;
+        }
+        .api-test button { 
+            background: #00FFD1; 
+            color: #0a0a0a; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .api-test button:hover { 
+            background: #00e6bc; 
+        }
+        .response { 
+            background: #2a2a2a; 
+            padding: 15px; 
+            border-radius: 4px; 
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success { border-left: 4px solid #00FFD1; }
+        .error { border-left: 4px solid #ff4444; }
+        .loading { color: #888; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 Neon AI Modules</h1>
-        <p>Welcome to your AI project!</p>
-        <p>This is your deployed application.</p>
+        <div class="header">
+            <h1>AI Course Platform</h1>
+            <p>Serverless Backend Test</p>
+        </div>
+
+        <div class="api-test">
+            <h3>Health Check</h3>
+            <button onclick="testAPI('/api/health')">Test Health</button>
+            <div id="health-response" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>Modules</h3>
+            <button onclick="testAPI('/api/modules')">Get Modules</button>
+            <div id="modules-response" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>Admin Users</h3>
+            <button onclick="testAPI('/api/admin/users')">Get Users</button>
+            <div id="admin-users-response" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>Admin Modules</h3>
+            <button onclick="testAPI('/api/admin/modules')">Get All Modules</button>
+            <div id="admin-modules-response" class="response" style="display: none;"></div>
+        </div>
+
+        <div class="api-test">
+            <h3>Enrollments</h3>
+            <button onclick="testAPI('/api/enrollments')">Get Enrollments</button>
+            <div id="enrollments-response" class="response" style="display: none;"></div>
+        </div>
     </div>
+
+    <script>
+        async function testAPI(endpoint) {
+            const responseId = endpoint.replace(/[^a-zA-Z0-9]/g, '-') + '-response';
+            const responseDiv = document.getElementById(responseId);
+            
+            if (!responseDiv) {
+                // Create response div if it doesn't exist
+                const container = event.target.parentElement;
+                const newDiv = document.createElement('div');
+                newDiv.id = responseId;
+                newDiv.className = 'response';
+                container.appendChild(newDiv);
+                responseDiv = newDiv;
+            }
+            
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response loading';
+            responseDiv.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                responseDiv.className = response.ok ? 'response success' : 'response error';
+                responseDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
 </body>
 </html>

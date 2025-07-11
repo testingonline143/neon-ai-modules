@@ -1,136 +1,112 @@
-# AI Course Platform - Serverless
+# AI Course Platform - Serverless Deployment
 
-A modern AI course platform built with React, TypeScript, and serverless functions.
+## Overview
+This AI Course Platform has been migrated to a serverless architecture compatible with Vercel and other serverless platforms. The application features:
 
-## Architecture
+- **Frontend**: React with TypeScript and Tailwind CSS
+- **Backend**: Serverless functions in `/api` directory
+- **Database**: PostgreSQL with Neon serverless driver
+- **Authentication**: Firebase Auth
+- **Deployment**: Vercel-ready with `vercel.json` configuration
 
-### Frontend
-- **React 18** with TypeScript
-- **Vite** for fast development and optimized builds
-- **Tailwind CSS** with shadcn/ui components
-- **TanStack Query** for server state management
-- **Firebase Auth** for authentication
+## Deployment Instructions
 
-### Backend
-- **Serverless Functions** (Vercel/Netlify compatible)
-- **Neon Database** with HTTP-based connections
-- **Drizzle ORM** for type-safe database operations
-- **No persistent server processes**
+### Vercel Deployment
 
-### Data Storage
-- **PostgreSQL** via Neon serverless
-- **No session storage** - stateless authentication
-- **Connection pooling** handled by Neon
+1. **Install Vercel CLI** (if not already installed):
+   ```bash
+   npm install -g vercel
+   ```
 
-## Deployment Options
+2. **Set Environment Variables**:
+   - `DATABASE_URL` - Your PostgreSQL connection string
+   - Add any Firebase configuration variables if needed
 
-### Vercel
-```bash
-npm run build
-vercel --prod
-```
+3. **Deploy**:
+   ```bash
+   vercel --prod
+   ```
 
-### Netlify
-```bash
-npm run build
-netlify deploy --prod --dir=dist/public
-```
+4. **Configure Environment Variables in Vercel Dashboard**:
+   - Go to your Vercel project dashboard
+   - Navigate to Settings → Environment Variables
+   - Add your `DATABASE_URL` and any other required variables
 
-### Static Hosting + Serverless Functions
-The platform works as a JAMstack application:
-- Static frontend hosted on CDN
-- API endpoints as serverless functions
-- Database connections created per request
+### Alternative Deployment: Netlify
 
-## Environment Variables
+1. **Install Netlify CLI**:
+   ```bash
+   npm install -g netlify-cli
+   ```
 
-```env
-DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
-VITE_API_URL=https://your-api-domain.com
-```
+2. **Create `netlify.toml`**:
+   ```toml
+   [build]
+   command = "npm run build"
+   publish = "client/dist"
 
-## Development
+   [functions]
+   directory = "api"
 
-```bash
-# Install dependencies
-npm install
+   [[redirects]]
+   from = "/api/*"
+   to = "/.netlify/functions/:splat"
+   status = 200
 
-# Start development server
-npm run dev
+   [[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+   ```
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
+3. **Deploy**:
+   ```bash
+   netlify deploy --prod
+   ```
 
 ## API Endpoints
 
-### Public Endpoints
+### Student Endpoints
 - `GET /api/health` - Health check
-- `GET /api/modules` - Published course modules
-- `GET /api/lessons/[moduleId]` - Lessons for a module
-- `GET /api/enrollments` - User enrollments
+- `GET /api/modules` - Get published modules
+- `GET /api/lessons/[moduleId]` - Get lessons for a module
+- `GET /api/enrollments` - Get user enrollments
 
 ### Admin Endpoints
-- `GET /api/admin/users` - All users
-- `POST /api/admin/users` - Create user
-- `GET /api/admin/modules` - All modules
-- `POST /api/admin/modules` - Create module
-- `PUT /api/admin/modules` - Update module
+- `GET /api/admin/users` - Get all users
+- `GET /api/admin/modules` - Get all modules (admin)
+- `POST /api/admin/modules` - Create new module
+- `PATCH /api/admin/modules` - Update module
 - `DELETE /api/admin/modules` - Delete module
-- `GET /api/admin/lessons` - All lessons
-- `POST /api/admin/lessons` - Create lesson
-- `PUT /api/admin/lessons` - Update lesson
+- `GET /api/admin/lessons` - Get all lessons
+- `POST /api/admin/lessons` - Create new lesson
+- `PATCH /api/admin/lessons` - Update lesson
 - `DELETE /api/admin/lessons` - Delete lesson
-
-## Features
-
-### Course Management
-- YouTube video integration
-- PDF document support
-- Module and lesson organization
-- Progress tracking
-- Admin dashboard for content management
-
-### User Experience
-- Responsive design
-- Dark theme with neon accents
-- Real-time updates
-- Offline-capable static frontend
-
-### Security
-- Stateless authentication
-- CORS configuration
-- Input validation
-- SQL injection protection via Drizzle ORM
 
 ## Database Schema
 
-### Users
-- id, username, email, name, created_at
+The application uses PostgreSQL with the following tables:
+- `users` - User information
+- `enrollments` - User course enrollment and progress
+- `modules` - Course modules
+- `lessons` - Individual lessons with YouTube videos and PDFs
 
-### Modules
-- id, title, description, lessons_count, duration, order, is_published
+## Environment Variables
 
-### Lessons
-- id, module_id, title, description, youtube_url, pdf_url, order, duration, is_published
+Required environment variables:
+- `DATABASE_URL` - PostgreSQL connection string (Neon format)
+- Firebase configuration variables (if using Firebase Auth)
 
-### Enrollments
-- id, user_id, enrolled, progress, completed_at
+## Testing
 
-## Performance
+Use the included `index.html` file to test the serverless API endpoints locally or after deployment.
 
-- **Static frontend** - CDN distribution
-- **Serverless functions** - Auto-scaling
-- **Database pooling** - Neon connection management
-- **Query optimization** - TanStack Query caching
-- **Bundle optimization** - Vite tree-shaking
+## Migration Notes
 
-## Scalability
+This project has been migrated from a traditional Express.js server to serverless functions:
+- Each API endpoint is now a separate serverless function
+- Database connections use Neon's HTTP-based driver for serverless compatibility
+- No persistent server state or session storage
+- CORS headers are included for cross-origin requests
 
-- **Horizontal scaling** - Serverless auto-scaling
-- **Global distribution** - CDN + edge functions
-- **Database scaling** - Neon serverless scaling
-- **Cost optimization** - Pay-per-request model
+The frontend React application can be deployed as static files and will communicate with the serverless API endpoints.

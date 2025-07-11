@@ -1,42 +1,37 @@
-import { neonConfig } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, and } from 'drizzle-orm';
-import * as schema from "../../shared/schema";
+import { lessons } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
-neonConfig.fetchConnectionCache = true;
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
 export default async function handler(req: any, res: any) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { moduleId } = req.query;
-
   try {
-    const db = drizzle(process.env.DATABASE_URL!, { schema });
-    
+    const moduleId = parseInt(req.query.moduleId as string);
     const moduleLessons = await db.select()
-      .from(schema.lessons)
-      .where(and(
-        eq(schema.lessons.moduleId, parseInt(moduleId)),
-        eq(schema.lessons.isPublished, true)
-      ))
-      .orderBy(schema.lessons.order);
-
-    res.status(200).json(moduleLessons);
+      .from(lessons)
+      .where(eq(lessons.moduleId, moduleId))
+      .orderBy(lessons.order);
+    
+    // Only return published lessons
+    const publishedLessons = moduleLessons.filter(lesson => lesson.isPublished);
+    res.json(publishedLessons);
   } catch (error) {
-    console.error('Failed to fetch lessons:', error);
+    console.error('Error fetching lessons:', error);
     res.status(500).json({ message: "Failed to fetch lessons" });
   }
 }

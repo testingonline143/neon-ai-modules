@@ -1,61 +1,70 @@
-import { neonConfig } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
+import { lessons, insertLessonSchema } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
-import * as schema from "../../shared/schema";
 
-neonConfig.fetchConnectionCache = true;
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
 export default async function handler(req: any, res: any) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
-
-  const db = drizzle(process.env.DATABASE_URL!, { schema });
 
   if (req.method === 'GET') {
     try {
-      const allLessons = await db.select().from(schema.lessons);
-      res.status(200).json(allLessons);
+      const allLessons = await db.select().from(lessons);
+      res.json(allLessons);
     } catch (error) {
-      console.error('Failed to fetch lessons:', error);
+      console.error('Error fetching lessons:', error);
       res.status(500).json({ message: "Failed to fetch lessons" });
     }
   } else if (req.method === 'POST') {
     try {
-      const lessonData = req.body;
-      const newLesson = await db.insert(schema.lessons).values(lessonData).returning();
+      const lessonData = insertLessonSchema.parse(req.body);
+      const newLesson = await db.insert(lessons).values(lessonData).returning();
       res.status(201).json(newLesson[0]);
     } catch (error) {
-      console.error('Failed to create lesson:', error);
+      console.error('Error creating lesson:', error);
       res.status(500).json({ message: "Failed to create lesson" });
     }
-  } else if (req.method === 'PUT') {
+  } else if (req.method === 'PATCH') {
     try {
       const { id, ...lessonData } = req.body;
+      
       const updated = await db
-        .update(schema.lessons)
+        .update(lessons)
         .set({ ...lessonData, updatedAt: new Date() })
-        .where(eq(schema.lessons.id, id))
+        .where(eq(lessons.id, parseInt(id)))
         .returning();
-      res.status(200).json(updated[0]);
+
+      if (updated.length === 0) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+
+      res.json(updated[0]);
     } catch (error) {
-      console.error('Failed to update lesson:', error);
+      console.error('Error updating lesson:', error);
       res.status(500).json({ message: "Failed to update lesson" });
     }
   } else if (req.method === 'DELETE') {
     try {
       const { id } = req.query;
-      await db.delete(schema.lessons).where(eq(schema.lessons.id, parseInt(id)));
-      res.status(200).json({ message: "Lesson deleted successfully" });
+      const lessonId = parseInt(id as string);
+      const deleted = await db.delete(lessons).where(eq(lessons.id, lessonId)).returning();
+
+      if (deleted.length === 0) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+
+      res.json({ message: "Lesson deleted successfully" });
     } catch (error) {
-      console.error('Failed to delete lesson:', error);
+      console.error('Error deleting lesson:', error);
       res.status(500).json({ message: "Failed to delete lesson" });
     }
   } else {
